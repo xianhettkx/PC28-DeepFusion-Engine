@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 DB = DATA / "pc28.sqlite3"
-API_URL = os.getenv("PC28_API_URL") or "https://pc28.help/api/kj.json?nbr=500"
+API_URL = os.getenv("PC28_API_URL") or "https://pc28.help/api/kj.json?nbr=100"
 ROLLING_SIZE = int(os.getenv("PC28_ROLLING_SIZE", "10000"))
 FIELDS = ["draw_nbr","draw_date","draw_time","draw_number","draw_num","size_type","parity_type","combination_type"]
 ALIASES = {
