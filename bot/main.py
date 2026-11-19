@@ -372,7 +372,11 @@ async def post_init(app: Application) -> None:
     if app.job_queue:
         app.job_queue.run_repeating(poll_repository, interval=seconds, first=10, name="repository-poll")
     else:
-        LOG.warning("JobQueue unavailable; install python-telegram-bot[job-def build_application(token: str) -> Application:
+        LOG.warning("JobQueue unavailable; install python-telegram-bot[job-queue] to enable repository polling.")
+
+
+
+def build_application(token: str) -> Application:
     # Match the known-working Heyu Space configuration: PTB-managed HTTPX
     # timeouts, then manually initialize/start the updater in our worker loop.
     app = (
