@@ -51,7 +51,7 @@ def evaluate(model, seqs, feats, labels):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("--if-new-20",action="store_true")
-    parser.add_argument("--epochs",type=int,default=10
+    parser.add_argument("--epochs",type=int,default=10)
     args=parser.parse_args()
     set_seed()
     df=load_and_prepare(DATA)
