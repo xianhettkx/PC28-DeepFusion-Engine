@@ -1,4 +1,4 @@
-name: PC28 data sync
+name: PC28 data sync and training gate
 on:
   workflow_dispatch:
   push:
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,20 +24,34 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run validation and synchronizer
+      - name: Install CPU PyTorch and data dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.6.0+cpu
+          python -m pip install numpy pandas
+      - name: Validate parser and synchronize latest draws
         env:
-          PC28_API_URL: https://pc28.help/api/kj.json?nbr=500
+          PC28_API_URL: https://pc28.help/api/kj.json?nbr=100
         run: |
           python -m unittest discover -s engine -p 'test_*.py' -v
           python engine/sync.py
-      - name: Commit updated dataset
+      - name: Train only after 20 new draws
+        run: python -m training.train_deepfusion --if-new-20
+      - name: Run 600-draw walk-forward evaluation when a model exists
+        run: |
+          if ls models/deepfusion_v*.pt >/dev/null 2>&1; then
+            python -m evaluation.backtest_600
+          else
+            echo "No trained checkpoint yet; first training was skipped or failed."
+          fi
+      - name: Commit data, model and reports
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/pc28.sqlite3 data/raw_history.csv data/rolling_10000.csv data/dataset_manifest.json
+          git add data/pc28.sqlite3 data/raw_history.csv data/rolling_10000.csv data/dataset_manifest.json models/*.pt logs/ evaluation/reports/
           if ! git diff --cached --quiet; then
-            git commit -m "chore(data): sync PC28 draw history"
+            git commit -m "chore(engine): sync PC28 data and update model if due"
             git push
           else
-            echo "No dataset changes."
+            echo "No dataset/model changes."
           fi
