@@ -18,6 +18,7 @@ from typing import Any
 
 from telegram import Update
 from telegram.constants import ParseMode
+from telegram.request import HTTPXRequest
 from telegram.ext import (
     Application, ApplicationBuilder, CommandHandler, ContextTypes,
 )
@@ -375,7 +376,30 @@ async def post_init(app: Application) -> None:
 
 
 def build_application(token: str) -> Application:
-    app = ApplicationBuilder().token(token).post_init(post_init).build()
+    # Increase connection timeouts and keep a dedicated pool for long polling.
+    request = HTTPXRequest(
+        connection_pool_size=16,
+        connect_timeout=30,
+        read_timeout=30,
+        write_timeout=30,
+        pool_timeout=30,
+    )
+    updates_request = HTTPXRequest(
+        connection_pool_size=16,
+        connect_timeout=30,
+        read_timeout=40,
+        write_timeout=30,
+        pool_timeout=30,
+    )
+
+    app = (
+        ApplicationBuilder()
+        .token(token)
+        .request(request)
+        .get_updates_request(updates_request)
+        .post_init(post_init)
+        .build()
+    )
     for command, callback in (
         ("start", start), ("help", help_command), ("predict", predict),
         ("history", history), ("verify", verify), ("status", status),
@@ -398,7 +422,10 @@ def main() -> None:
         LOG.warning("BOT_ADMIN_IDS is empty; admin-only commands are disabled.")
     app = build_application(token)
     LOG.info("Starting PC28 DeepFusion Telegram bot (long polling).")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    app.run_polling(
+        allowed_updates=Update.ALL_TYPES,
+        bootstrap_retries=-1,
+    )
 
 
 if __name__ == "__main__":
