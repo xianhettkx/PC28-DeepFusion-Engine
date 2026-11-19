@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "engine/**"
+      - "prediction/**"
       - ".github/workflows/pc28-data-sync.yml"
   schedule:
     - cron: "*/5 * * * *"
@@ -38,6 +39,8 @@ jobs:
           python -m compileall -q training models features evaluation prediction engine
           python -m unittest discover -s engine -p 'test_*.py' -v
           python engine/sync.py
+      - name: Validate all frozen prediction plans against new results
+        run: python -m prediction.validate_plans
       - name: Train only after 20 new draws
         id: train
         shell: bash
@@ -52,14 +55,20 @@ jobs:
       - name: Run 600-draw walk-forward evaluation after a new training run
         if: steps.train.outputs.trained == 'true'
         run: python -m evaluation.backtest_600
-      - name: Commit data, model and reports
+      - name: Generate and freeze the next 20-draw prediction plan
+        if: steps.train.outputs.trained == 'true'
+        run: python -m prediction.generate_plan
+      - name: Validate the newly frozen plan (must have zero outcomes initially)
+        if: steps.train.outputs.trained == 'true'
+        run: python -m prediction.validate_plans
+      - name: Commit data, model, reports and immutable plans
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/pc28.sqlite3 data/raw_history.csv data/rolling_10000.csv data/dataset_manifest.json models/*.pt logs/ evaluation/reports/
+          git add -A data/ models/ logs/ evaluation/ prediction/
           if ! git diff --cached --quiet; then
-            git commit -m "chore(engine): sync PC28 data and update model if due"
+            git commit -m "chore(engine): sync data, validate forecasts and update model"
             git push
           else
-            echo "No dataset/model changes."
+            echo "No dataset/model/forecast changes."
           fi
