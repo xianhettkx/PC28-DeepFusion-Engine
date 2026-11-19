@@ -1,8 +1,10 @@
 {
+  "status": "unverified_report_only",
   "version": "20261119_171641",
-  "n_params": 1410821,
-  "weight_size_mb": 5.392,
-  "test_accuracy": 0.2717,
-  "baseline_accuracy": 0.2717,
-  "note": "Trained from random initialization on real PC28 data. No pre-trained weights used. Strict temporal split."
+  "claimed_parameters": 1410821,
+  "claimed_weight_size_mb": 5.392,
+  "claimed_test_accuracy": 0.2717,
+  "claimed_baseline_accuracy": 0.2717,
+  "checkpoint_file_found": false,
+  "note": "Previous report claimed a trained checkpoint, but no corresponding model weight file exists in the repository. Treat all previous training and weight-size claims as unverified until a real checkpoint is committed and its file size is checked."
 }
