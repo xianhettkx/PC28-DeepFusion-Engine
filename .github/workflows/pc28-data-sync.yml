@@ -61,15 +61,33 @@ jobs:
       - name: Validate the newly frozen plan (must have zero outcomes initially)
         if: steps.train.outputs.trained == 'true'
         run: python -m prediction.validate_plans
-      - name: Create the initial frozen 20-draw plan if none exists
+      - name: Create the next frozen plan when no plan is still active
         shell: bash
         run: |
-          mkdir -p prediction/plans
-          if ! compgen -G "prediction/plans/*.json" > /dev/null; then
+          mkdir -p prediction/plans prediction/validation
+          NEED_PLAN=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          plans = list(Path("prediction/plans").glob("*.json"))
+          active = False
+          for plan_path in plans:
+              plan = json.loads(plan_path.read_text(encoding="utf-8"))
+              report_path = Path("prediction/validation") / f"{plan['plan_id']}.json"
+              if not report_path.exists():
+                  active = True
+                  break
+              report = json.loads(report_path.read_text(encoding="utf-8"))
+              if report.get("completed") is not True:
+                  active = True
+                  break
+          print("no" if active else "yes")
+          PY
+          )
+          if [ "$NEED_PLAN" = "yes" ]; then
             python -m prediction.generate_plan
             python -m prediction.validate_plans
           else
-            echo "A frozen prediction plan already exists; it will not be replaced."
+            echo "An unfinished frozen plan already exists; it will not be replaced."
           fi
       - name: Commit data, model, reports and immutable plans
         run: |
