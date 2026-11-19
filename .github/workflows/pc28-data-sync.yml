@@ -96,7 +96,9 @@ jobs:
           git add -A data/ models/ logs/ evaluation/ prediction/
           if ! git diff --cached --quiet; then
             git commit -m "chore(engine): sync data, validate forecasts and update model"
-            git push
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
           else
             echo "No dataset/model/forecast changes."
           fi
