@@ -1,0 +1,231 @@
+{
+  "plan_id": "DF-20261119T224604857703Z",
+  "generated_at": "2026-11-19T22:46:04.857742+00:00",
+  "model_version": "deepfusion_v3508614",
+  "last_historical_issue": 3508645,
+  "forecast_method": "recursive_expected_value_feedback",
+  "predictions": [
+    {
+      "issue": 3508646,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.224357,
+        "小单": 0.279975,
+        "大双": 0.267212,
+        "小双": 0.228456
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508647,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.240078,
+        "小单": 0.284524,
+        "大双": 0.235705,
+        "小双": 0.239693
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508648,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.21558,
+        "小单": 0.278388,
+        "大双": 0.258155,
+        "小双": 0.247877
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508649,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.243465,
+        "小单": 0.287876,
+        "大双": 0.24911,
+        "小双": 0.219549
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508650,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.246144,
+        "小单": 0.287166,
+        "大双": 0.239353,
+        "小双": 0.227337
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508651,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.2351,
+        "小单": 0.283883,
+        "大双": 0.256323,
+        "小双": 0.224694
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508652,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.224806,
+        "小单": 0.279913,
+        "大双": 0.254541,
+        "小双": 0.24074
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508653,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.238435,
+        "小单": 0.282863,
+        "大双": 0.260011,
+        "小双": 0.218692
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508654,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.23346,
+        "小单": 0.280703,
+        "大双": 0.258234,
+        "小双": 0.227603
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508655,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.227597,
+        "小单": 0.276164,
+        "大双": 0.259824,
+        "小双": 0.236414
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508656,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.237165,
+        "小单": 0.275815,
+        "大双": 0.266288,
+        "小双": 0.220731
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508657,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.237735,
+        "小单": 0.274856,
+        "大双": 0.266759,
+        "小双": 0.22065
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508658,
+      "prediction": "小单",
+      "probabilities": {
+        "大单": 0.237792,
+        "小单": 0.273171,
+        "大双": 0.269291,
+        "小双": 0.219745
+      },
+      "recursive_expected_sum": 9.7334
+    },
+    {
+      "issue": 3508659,
+      "prediction": "大双",
+      "probabilities": {
+        "大单": 0.23784,
+        "小单": 0.271504,
+        "大双": 0.271794,
+        "小双": 0.218862
+      },
+      "recursive_expected_sum": 17.2968
+    },
+    {
+      "issue": 3508660,
+      "prediction": "大双",
+      "probabilities": {
+        "大单": 0.228472,
+        "小单": 0.266045,
+        "大双": 0.290762,
+        "小双": 0.214721
+      },
+      "recursive_expected_sum": 17.2968
+    },
+    {
+      "issue": 3508661,
+      "prediction": "大双",
+      "probabilities": {
+        "大单": 0.225827,
+        "小单": 0.264233,
+        "大双": 0.287984,
+        "小双": 0.221956
+      },
+      "recursive_expected_sum": 17.2968
+    },
+    {
+      "issue": 3508662,
+      "prediction": "大双",
+      "probabilities": {
+        "大单": 0.225089,
+        "小单": 0.260792,
+        "大双": 0.291564,
+        "小双": 0.222554
+      },
+      "recursive_expected_sum": 17.2968
+    },
+    {
+      "issue": 3508663,
+      "prediction": "大双",
+      "probabilities": {
+        "大单": 0.225377,
+        "小单": 0.261411,
+        "大双": 0.289593,
+        "小双": 0.223619
+      },
+      "recursive_expected_sum": 17.2968
+    },
+    {
+      "issue": 3508664,
+      "prediction": "大双",
+      "probabilities": {
+        "大单": 0.233668,
+        "小单": 0.264783,
+        "大双": 0.275211,
+        "小双": 0.226338
+      },
+      "recursive_expected_sum": 17.2968
+    },
+    {
+      "issue": 3508665,
+      "prediction": "大双",
+      "probabilities": {
+        "大单": 0.233665,
+        "小单": 0.264772,
+        "大双": 0.275261,
+        "小双": 0.226302
+      },
+      "recursive_expected_sum": 17.2968
+    }
+  ],
+  "frozen": true,
+  "sha256": "7eb1a740e86114476fa7546e272bc8f35ac0cf11ff09f3d82e22b557a85b3e5f"
+}

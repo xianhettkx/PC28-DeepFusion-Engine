@@ -1,10 +1,12 @@
 {
-  "updated_at": "2026-11-19T20:56:47.515337+00:00",
-  "total_archived": 10095,
+  "updated_at": "2026-11-19T22:45:34.757696+00:00",
+  "total_archived": 10126,
   "rolling_size": 10000,
   "first_issue": 3498520,
-  "latest_issue": 3508614,
+  "latest_issue": 3508645,
+  "duplicate_issues": 0,
   "gap_ranges": [],
+  "continuous": true,
   "api_url": "https://pc28.help/api/kj.json?nbr=100",
-  "note": "Raw archive is append-only; rolling file is the latest N draws."
+  "note": "raw_history.csv is the complete archive; rolling_10000.csv is the latest 10000 draws."
 }
