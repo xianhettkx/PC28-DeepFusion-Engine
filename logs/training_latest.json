@@ -1,0 +1,22 @@
+{
+  "model_config": {
+    "hidden": 256,
+    "sequence_length": 32,
+    "feature_dim": 48,
+    "classes": 4
+  },
+  "trained_through_issue": 3508556,
+  "trained_at": "2026-11-19T17:35:15.129901+00:00",
+  "parameter_count": 361349,
+  "train_samples": 8472,
+  "validation_samples": 1496,
+  "epochs": 10,
+  "train_loss": 1.3837236782871856,
+  "validation_loss": 1.3849594593048096,
+  "validation_accuracy": 0.2553475935828877,
+  "seed": 20261120,
+  "from_random_initialization": true,
+  "model_file": "models/deepfusion_v3508556.pt",
+  "model_size_bytes": 1453799,
+  "status": "trained"
+}
