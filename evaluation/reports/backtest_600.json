@@ -1,0 +1,24 @@
+{
+  "test_periods": 600,
+  "accuracy": 0.2717,
+  "macro_f1": 0.1068,
+  "log_loss": 1.3854,
+  "brier_score": 0.7496,
+  "confusion_matrix": [
+    [0, 0, 141, 0],
+    [0, 0, 164, 0],
+    [0, 0, 163, 0],
+    [0, 0, 132, 0]
+  ],
+  "per_class": {
+    "大单": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
+    "小单": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
+    "大双": {"precision": 0.2717, "recall": 1.0, "f1": 0.4273},
+    "小双": {"precision": 0.0, "recall": 0.0, "f1": 0.0}
+  },
+  "baselines": {
+    "majority_class_accuracy": 0.2717,
+    "random_accuracy": 0.25
+  },
+  "note": "Strict temporal split. No future leakage. Lottery is random; results near baseline are expected."
+}
