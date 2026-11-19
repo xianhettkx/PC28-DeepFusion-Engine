@@ -276,21 +276,21 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.effective_user
-    if not user:
+    chat = update.effective_chat
+    if not chat:
         return
     ids = load_subscribers()
-    ids.add(user.id)
+    ids.add(chat.id)
     save_subscribers(ids)
     await reply(update, "已订阅。Bot 在线运行且数据仓库更新后，会推送新预测计划和开奖验证。")
 
 
 async def unsubscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.effective_user
-    if not user:
+    chat = update.effective_chat
+    if not chat:
         return
     ids = load_subscribers()
-    ids.discard(user.id)
+    ids.discard(chat.id)
     save_subscribers(ids)
     await reply(update, "已取消订阅。")
 
