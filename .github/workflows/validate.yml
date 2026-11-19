@@ -1,0 +1,57 @@
+name: DeepFusion CPU validation
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: deepfusion-validation
+  cancel-in-progress: false
+jobs:
+  smoke-train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install CPU dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.6.0+cpu
+          python -m pip install numpy pandas scikit-learn pytest
+      - name: Run data and model smoke tests
+        run: python -m pytest -q tests/test_smoke.py
+      - name: Train one real epoch from random initialization
+        run: python -m training.train_deepfusion --epochs 1
+      - name: Verify generated checkpoint is loadable and larger than 1 MB
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import torch
+          from models.deepfusion import DeepFusionNet
+          files = sorted(Path("models").glob("deepfusion_v*.pt"))
+          assert files, "training produced no checkpoint"
+          path = files[-1]
+          assert path.stat().st_size > 1_000_000, f"checkpoint too small: {path.stat().st_size}"
+          ckpt = torch.load(path, map_location="cpu", weights_only=False)
+          assert ckpt.get("from_random_initialization") is True
+          model = DeepFusionNet(hidden=ckpt["model_config"]["hidden"])
+          model.load_state_dict(ckpt["model_state"])
+          print({"checkpoint": str(path), "bytes": path.stat().st_size,
+                 "parameters": ckpt["parameter_count"],
+                 "trained_through_issue": ckpt["trained_through_issue"]})
+          PY
+      - name: Upload trained checkpoint and training log
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepfusion-cpu-smoke-training
+          path: |
+            models/deepfusion_v*.pt
+            logs/training_latest.json
+          if-no-files-found: error
+          retention-days: 14
