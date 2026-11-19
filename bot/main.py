@@ -466,7 +466,7 @@ def main() -> None:
             attempt += 1
             delay = min(60, 5 * attempt)
             LOG.exception("Telegram startup/runtime failed; retrying in %s seconds.", delay)
-            time.sleep(delay)vent_loop())
+            time.sleep(delay)
 
 
 if __name__ == "__main__":
