@@ -21,7 +21,7 @@ jobs:
           python-version: "3.12"
       - name: Run validation and synchronizer
         env:
-          PC28_API_URL: \${{ vars.PC28_API_URL }}
+          PC28_API_URL: https://pc28.help/api/kj.json?nbr=500
         run: |
           python -m unittest discover -s engine -p 'test_*.py' -v
           python engine/sync.py
