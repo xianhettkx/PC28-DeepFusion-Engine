@@ -24,6 +24,7 @@ Set environment variables on the host; never commit secrets:
 - `TG_TOKEN` (or `TELEGRAM_BOT_TOKEN`): token from BotFather
 - `BOT_ADMIN_IDS`: comma-separated numeric Telegram user IDs
 - `BOT_POLL_SECONDS`: repository polling interval; minimum 30, default 60
+- `BOT_AUTO_GIT_PULL`: automatically run `git pull --ff-only origin main` before each poll; default `true`
 
 ## Run
 
