@@ -1,0 +1,8 @@
+{
+  "version": "20261119_171641",
+  "n_params": 1410821,
+  "weight_size_mb": 5.392,
+  "test_accuracy": 0.2717,
+  "baseline_accuracy": 0.2717,
+  "note": "Trained from random initialization on real PC28 data. No pre-trained weights used. Strict temporal split."
+}
