@@ -151,8 +151,8 @@ def main():
         conn.execute("INSERT INTO sync_runs(ran_at,source,fetched,inserted,latest_issue,gaps,status,detail) VALUES(?,?,?,?,?,?,?,?)",
           (datetime.now(timezone.utc).isoformat(),API_URL,len(fetched),inserted,manifest["latest_issue"],json.dumps(gaps),status,detail))
         conn.commit()
-        if before and manifest["latest_issue"] and manifest["latest_issue"] > before + 1:
-            print(f"WARNING: latest issue advanced from {before} to {manifest['latest_issue']}; check gap_ranges and backfill API coverage.",file=sys.stderr)
+        if gaps:
+            print(f"WARNING: detected {len(gaps)} missing issue range(s); backfill is required before treating the archive as complete.",file=sys.stderr)
     except Exception as exc:
         conn.rollback()
         print(f"SYNC FAILED: {type(exc).__name__}: {exc}",file=sys.stderr)
