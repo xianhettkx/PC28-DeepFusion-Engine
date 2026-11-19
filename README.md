@@ -46,4 +46,4 @@ python -m prediction.generate_plan           # 生成20期预测计划
 
 ## 数据同步
 
-已有 GitHub Actions 每 5 分钟同步 https://pc28.help/api/kj.json?nbr=500，维护完整归档与最近 10000 期训练窗口。
+GitHub Actions 每 5 分钟同步 https://pc28.help/api/kj.json?nbr=100（该接口文档限制 nbr 为 1–100），维护完整归档与最近 10000 期训练窗口。达到新增 20 期后才触发训练。
