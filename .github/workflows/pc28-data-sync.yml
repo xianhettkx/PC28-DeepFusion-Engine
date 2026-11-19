@@ -1,6 +1,11 @@
 name: PC28 data sync
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "engine/**"
+      - ".github/workflows/pc28-data-sync.yml"
   schedule:
     - cron: "*/5 * * * *"
 permissions:
