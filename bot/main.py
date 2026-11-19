@@ -377,16 +377,38 @@ async def post_init(app: Application) -> None:
 
 
 def build_application(token: str) -> Application:
-    # Match the known-working Heyu Space configuration: PTB-managed HTTPX
-    # timeouts, then manually initialize/start the updater in our worker loop.
+    # Hugging Face's PC28 runtime has shown Telegram TLS connection timeouts.
+    # When no explicit proxy is configured, bind outbound sockets to IPv4;
+    # this avoids a broken IPv6 route without changing Telegram's API or token.
+    proxy_configured = any(
+        os.getenv(name)
+        for name in ("HTTPS_PROXY", "https_proxy", "ALL_PROXY", "all_proxy")
+    )
+    request_kwargs: dict[str, Any] = {
+        "connection_pool_size": 8,
+        "read_timeout": 30,
+        "write_timeout": 30,
+        "connect_timeout": 30,
+        "pool_timeout": 15,
+    }
+    if not proxy_configured:
+        request_kwargs["httpx_kwargs"] = {
+            "trust_env": True,
+            "transport": httpx.AsyncHTTPTransport(local_address="0.0.0.0"),
+        }
+        LOG.info("Telegram HTTP transport: direct IPv4 (no proxy configured).")
+    else:
+        LOG.info("Telegram HTTP transport: environment proxy detected; using proxy-aware transport.")
+
+    bot_request = HTTPXRequest(**request_kwargs)
+    updates_request = HTTPXRequest(**request_kwargs)
+
     app = (
         ApplicationBuilder()
         .token(token)
+        .request(bot_request)
+        .get_updates_request(updates_request)
         .concurrent_updates(16)
-        .read_timeout(30)
-        .write_timeout(30)
-        .connect_timeout(15)
-        .pool_timeout(15)
         .post_init(post_init)
         .build()
     )
