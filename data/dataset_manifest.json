@@ -1,0 +1,10 @@
+{
+  "updated_at": "2026-11-19T15:43:01.242139+00:00",
+  "total_archived": 10005,
+  "rolling_size": 10000,
+  "first_issue": 3498520,
+  "latest_issue": 3508524,
+  "gap_ranges": [],
+  "api_url": "https://pc28.help/api/kj.json?nbr=500",
+  "note": "Raw archive is append-only; rolling file is the latest N draws."
+}
