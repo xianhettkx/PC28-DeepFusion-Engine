@@ -41,16 +41,6 @@ jobs:
           python engine/sync.py
       - name: Validate all frozen prediction plans against new results
         run: python -m prediction.validate_plans
-      - name: Create the initial frozen 20-draw plan if none exists
-        shell: bash
-        run: |
-          mkdir -p prediction/plans
-          if ! compgen -G "prediction/plans/*.json" > /dev/null; then
-            python -m prediction.generate_plan
-            python -m prediction.validate_plans
-          else
-            echo "A frozen prediction plan already exists; it will not be replaced."
-          fi
       - name: Train only after 20 new draws
         id: train
         shell: bash
@@ -71,6 +61,16 @@ jobs:
       - name: Validate the newly frozen plan (must have zero outcomes initially)
         if: steps.train.outputs.trained == 'true'
         run: python -m prediction.validate_plans
+      - name: Create the initial frozen 20-draw plan if none exists
+        shell: bash
+        run: |
+          mkdir -p prediction/plans
+          if ! compgen -G "prediction/plans/*.json" > /dev/null; then
+            python -m prediction.generate_plan
+            python -m prediction.validate_plans
+          else
+            echo "A frozen prediction plan already exists; it will not be replaced."
+          fi
       - name: Commit data, model, reports and immutable plans
         run: |
           git config user.name "github-actions[bot]"
