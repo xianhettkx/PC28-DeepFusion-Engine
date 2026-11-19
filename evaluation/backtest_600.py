@@ -20,8 +20,8 @@ def run_backtest():
     if len(targets)<=test_size+1000: raise RuntimeError("Insufficient pre-test history")
     cutoff=len(targets)-test_size
     torch.manual_seed(20261120)
-    model=DeepFusionNet(hidden=512)
-    model,_=fit_model(model,seqs[:cutoff],feats[:cutoff],targets[:cutoff],epochs=12,lr=2e-4)
+    model=DeepFusionNet(hidden=256)
+    model,_=fit_model(model,seqs[:cutoff],feats[:cutoff],targets[:cutoff],epochs=8,lr=2e-4)
     all_probs=[]; all_true=[]; rows=[]
     block=20
     for start in range(cutoff,len(targets),block):
