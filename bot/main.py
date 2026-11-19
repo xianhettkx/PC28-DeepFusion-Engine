@@ -13,12 +13,12 @@ import json
 import logging
 import os
 import subprocess
+import time
 from pathlib import Path
 from typing import Any
 
 from telegram import Update
 from telegram.constants import ParseMode
-from telegram.request import HTTPXRequest
 from telegram.ext import (
     Application, ApplicationBuilder, CommandHandler, ContextTypes,
 )
@@ -372,34 +372,17 @@ async def post_init(app: Application) -> None:
     if app.job_queue:
         app.job_queue.run_repeating(poll_repository, interval=seconds, first=10, name="repository-poll")
     else:
-        LOG.warning("JobQueue unavailable; install python-telegram-bot[job-queue].")
-
-
-def build_application(token: str) -> Application:
-    # Increase connection timeouts and keep a dedicated pool for long polling.
-    proxy_url = os.getenv("TELEGRAM_PROXY") or None
-    request = HTTPXRequest(
-        connection_pool_size=16,
-        connect_timeout=30,
-        read_timeout=30,
-        write_timeout=30,
-        pool_timeout=30,
-        proxy_url=proxy_url,
-    )
-    updates_request = HTTPXRequest(
-        connection_pool_size=16,
-        connect_timeout=30,
-        read_timeout=40,
-        write_timeout=30,
-        pool_timeout=30,
-        proxy_url=proxy_url,
-    )
-
+        LOG.warning("JobQueue unavailable; install python-telegram-bot[job-def build_application(token: str) -> Application:
+    # Match the known-working Heyu Space configuration: PTB-managed HTTPX
+    # timeouts, then manually initialize/start the updater in our worker loop.
     app = (
         ApplicationBuilder()
         .token(token)
-        .request(request)
-        .get_updates_request(updates_request)
+        .concurrent_updates(16)
+        .read_timeout(30)
+        .write_timeout(30)
+        .connect_timeout(15)
+        .pool_timeout(15)
         .post_init(post_init)
         .build()
     )
@@ -413,6 +396,47 @@ def build_application(token: str) -> Application:
     return app
 
 
+def polling_error_callback(exc: Exception) -> None:
+    LOG.warning("Telegram polling error: %s: %s", type(exc).__name__, exc)
+
+
+async def telegram_main(token: str) -> None:
+    app = build_application(token)
+    initialized = False
+    started = False
+    polling = False
+    try:
+        # Explicit lifecycle, matching the working my-tg-zdtz project.
+        await app.initialize()
+        initialized = True
+
+        # run_polling() invokes post_init internally; manual lifecycle must do it.
+        await post_init(app)
+
+        await app.start()
+        started = True
+
+        if app.updater is None:
+            raise RuntimeError("Telegram Updater is unavailable.")
+
+        await app.updater.start_polling(
+            drop_pending_updates=False,
+            allowed_updates=Update.ALL_TYPES,
+            error_callback=polling_error_callback,
+        )
+        polling = True
+        LOG.info("Telegram Bot connected; long polling is active.")
+
+        await asyncio.Event().wait()
+    finally:
+        if polling and app.updater is not None:
+            await app.updater.stop()
+        if started:
+            await app.stop()
+        if initialized:
+            await app.shutdown()
+
+
 def main() -> None:
     logging.basicConfig(
         level=os.getenv("LOG_LEVEL", "INFO"),
@@ -423,28 +447,22 @@ def main() -> None:
         raise SystemExit("Missing TG_TOKEN (or TELEGRAM_BOT_TOKEN) environment variable.")
     if not admin_ids():
         LOG.warning("BOT_ADMIN_IDS is empty; admin-only commands are disabled.")
-    LOG.info("Starting PC28 DeepFusion Telegram bot (long polling).")
-    proxy_configured = bool(os.getenv("TELEGRAM_PROXY"))
-    LOG.info("Telegram proxy configured: %s", proxy_configured)
 
-    # run_polling() initializes the Bot (getMe) before its own polling retry
-    # mechanism starts. Retry that bootstrap failure here instead of exiting.
+    LOG.info("Starting PC28 DeepFusion Telegram bot (manual long-polling lifecycle).")
+    attempt = 0
     while True:
-        app = build_application(token)
         try:
-            app.run_polling(
-                allowed_updates=Update.ALL_TYPES,
-                bootstrap_retries=-1,
-            )
+            asyncio.run(telegram_main(token))
             break
         except Exception as exc:
-            from telegram.error import NetworkError
-            if not isinstance(exc, NetworkError):
+            from telegram.error import InvalidToken
+            if isinstance(exc, InvalidToken):
+                LOG.exception("Telegram rejected the bot token; check TG_TOKEN.")
                 raise
-            LOG.exception("Telegram connection/bootstrap failed; retrying in 15 seconds.")
-            time.sleep(15)
-            # run_polling closes its event loop on exit; prepare a fresh one.
-            asyncio.set_event_loop(asyncio.new_event_loop())
+            attempt += 1
+            delay = min(60, 5 * attempt)
+            LOG.exception("Telegram startup/runtime failed; retrying in %s seconds.", delay)
+            time.sleep(delay)vent_loop())
 
 
 if __name__ == "__main__":
