@@ -35,13 +35,13 @@ def run_backtest():
             idx=int(np.argmax(p))
             rows.append({"issue":int(issues[j]),"prediction":CLASSES[idx],"probabilities":{CLASSES[k]:round(float(p[k]),6) for k in range(4)},"actual":CLASSES[int(targets[j])],"hit":bool(idx==int(targets[j]))})
         # Only after scoring this block do its actual outcomes enter training.
-        model,_=fit_model(model,seqs[:end],feats[:end],targets[:end],epochs=1,lr=5e-5)
+        update_start=max(0,end-2048)\n        model,_=fit_model(model,seqs[update_start:end],feats[update_start:end],targets[update_start:end],epochs=1,lr=5e-5)
     probs=np.concatenate(all_probs,axis=0); y=np.asarray(all_true,dtype=np.int64); pred=probs.argmax(1)
     precision,recall,f1,_=precision_recall_fscore_support(y,pred,labels=[0,1,2,3],zero_division=0)
     cm=confusion_matrix(y,pred,labels=[0,1,2,3]).tolist()
     freq=np.bincount(targets[:cutoff],minlength=4); baseline=int(freq.argmax())
     report={
-      "method":"prequential_walk_forward_20_draw_blocks",
+      "method":"prequential_walk_forward_20_draw_blocks_with_2048_sample_update_window",
       "test_periods":int(len(y)),"first_test_issue":int(issues[cutoff]),"last_test_issue":int(issues[-1]),
       "accuracy":round(float(accuracy_score(y,pred)),6),
       "macro_f1":round(float(f1_score(y,pred,average="macro",zero_division=0)),6),
