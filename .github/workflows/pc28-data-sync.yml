@@ -1,0 +1,38 @@
+name: PC28 data sync
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+permissions:
+  contents: write
+concurrency:
+  group: pc28-data-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run validation and synchronizer
+        env:
+          PC28_API_URL: \${{ vars.PC28_API_URL }}
+        run: |
+          python -m unittest discover -s engine -p 'test_*.py' -v
+          python engine/sync.py
+      - name: Commit updated dataset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/pc28.sqlite3 data/raw_history.csv data/rolling_10000.csv data/dataset_manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(data): sync PC28 draw history"
+            git push
+          else
+            echo "No dataset changes."
+          fi
