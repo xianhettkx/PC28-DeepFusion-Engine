@@ -35,6 +35,7 @@ jobs:
         env:
           PC28_API_URL: https://pc28.help/api/kj.json?nbr=100
         run: |
+          python -m compileall -q training models features evaluation prediction engine
           python -m unittest discover -s engine -p 'test_*.py' -v
           python engine/sync.py
       - name: Train only after 20 new draws
