@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "rolling_10000.csv"
 MODEL_DIR = ROOT / "models"
 LOG_DIR = ROOT / "logs"
-HIDDEN = 512
+HIDDEN = 256
 SEED = 20261120
 
 def set_seed(seed: int = SEED):
@@ -51,7 +51,7 @@ def evaluate(model, seqs, feats, labels):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("--if-new-20",action="store_true")
-    parser.add_argument("--epochs",type=int,default=18)
+    parser.add_argument("--epochs",type=int,default=10
     args=parser.parse_args()
     set_seed()
     df=load_and_prepare(DATA)
