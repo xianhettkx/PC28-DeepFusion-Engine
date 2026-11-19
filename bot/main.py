@@ -22,6 +22,8 @@ from telegram.constants import ParseMode
 from telegram.ext import (
     Application, ApplicationBuilder, CommandHandler, ContextTypes,
 )
+from telegram.request import HTTPXRequest
+import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN_DIR = ROOT / "prediction" / "plans"
