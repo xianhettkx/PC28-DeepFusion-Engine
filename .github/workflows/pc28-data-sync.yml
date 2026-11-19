@@ -30,7 +30,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.6.0+cpu
-          python -m pip install numpy pandas
+          python -m pip install numpy pandas scikit-learn
       - name: Validate parser and synchronize latest draws
         env:
           PC28_API_URL: https://pc28.help/api/kj.json?nbr=100
@@ -38,18 +38,23 @@ jobs:
           python -m unittest discover -s engine -p 'test_*.py' -v
           python engine/sync.py
       - name: Train only after 20 new draws
-        run: python -m training.train_deepfusion --if-new-20
-      - name: Run 600-draw walk-forward evaluation when a model exists
+        id: train
+        shell: bash
         run: |
-          if ls models/deepfusion_v*.pt >/dev/null 2>&1; then
-            python -m evaluation.backtest_600
+          set -o pipefail
+          python -m training.train_deepfusion --if-new-20 | tee /tmp/train-output.txt
+          if grep -q '"status": "trained"' /tmp/train-output.txt; then
+            echo "trained=true" >> "$GITHUB_OUTPUT"
           else
-            echo "No trained checkpoint yet; first training was skipped or failed."
+            echo "trained=false" >> "$GITHUB_OUTPUT"
           fi
+      - name: Run 600-draw walk-forward evaluation after a new training run
+        if: steps.train.outputs.trained == 'true'
+        run: python -m evaluation.backtest_600
       - name: Commit data, model and reports
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+actions-bot@users.noreply.github.com"
           git add data/pc28.sqlite3 data/raw_history.csv data/rolling_10000.csv data/dataset_manifest.json models/*.pt logs/ evaluation/reports/
           if ! git diff --cached --quiet; then
             git commit -m "chore(engine): sync PC28 data and update model if due"
