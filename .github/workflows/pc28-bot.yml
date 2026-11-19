@@ -36,6 +36,7 @@ jobs:
         run: python -m pip install --upgrade "python-telegram-bot[job-queue]==21.6"
 
       - name: Check required secret
+        id: check_required_secret
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
         run: |
