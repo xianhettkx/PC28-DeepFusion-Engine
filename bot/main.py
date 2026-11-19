@@ -377,12 +377,14 @@ async def post_init(app: Application) -> None:
 
 def build_application(token: str) -> Application:
     # Increase connection timeouts and keep a dedicated pool for long polling.
+    proxy_url = os.getenv("TELEGRAM_PROXY") or None
     request = HTTPXRequest(
         connection_pool_size=16,
         connect_timeout=30,
         read_timeout=30,
         write_timeout=30,
         pool_timeout=30,
+        proxy_url=proxy_url,
     )
     updates_request = HTTPXRequest(
         connection_pool_size=16,
@@ -390,6 +392,7 @@ def build_application(token: str) -> Application:
         read_timeout=40,
         write_timeout=30,
         pool_timeout=30,
+        proxy_url=proxy_url,
     )
 
     app = (
@@ -420,12 +423,28 @@ def main() -> None:
         raise SystemExit("Missing TG_TOKEN (or TELEGRAM_BOT_TOKEN) environment variable.")
     if not admin_ids():
         LOG.warning("BOT_ADMIN_IDS is empty; admin-only commands are disabled.")
-    app = build_application(token)
     LOG.info("Starting PC28 DeepFusion Telegram bot (long polling).")
-    app.run_polling(
-        allowed_updates=Update.ALL_TYPES,
-        bootstrap_retries=-1,
-    )
+    proxy_configured = bool(os.getenv("TELEGRAM_PROXY"))
+    LOG.info("Telegram proxy configured: %s", proxy_configured)
+
+    # run_polling() initializes the Bot (getMe) before its own polling retry
+    # mechanism starts. Retry that bootstrap failure here instead of exiting.
+    while True:
+        app = build_application(token)
+        try:
+            app.run_polling(
+                allowed_updates=Update.ALL_TYPES,
+                bootstrap_retries=-1,
+            )
+            break
+        except Exception as exc:
+            from telegram.error import NetworkError
+            if not isinstance(exc, NetworkError):
+                raise
+            LOG.exception("Telegram connection/bootstrap failed; retrying in 15 seconds.")
+            time.sleep(15)
+            # run_polling closes its event loop on exit; prepare a fresh one.
+            asyncio.set_event_loop(asyncio.new_event_loop())
 
 
 if __name__ == "__main__":
