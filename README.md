@@ -13,7 +13,7 @@
 ├── training/              # 训练脚本
 ├── features/              # 特征工程
 ├── evaluation/            # 回测与评估
-├── prediction/            # 20期冻结预测
+├── prediction/            # 20期冻结预测与开奖验证
 ├── storage/               # 模型版本管理
 ├── bot/                   # Telegram Bot
 ├── scripts/               # 工具脚本
@@ -25,9 +25,10 @@
 
 ```bash
 pip install -r requirements.txt
-python -m training.train_deepfusion          # 训练核心模型
-python -m evaluation.backtest_600            # 600期严格回测
-python -m prediction.generate_plan           # 生成20期预测计划
+python -m training.train_deepfusion
+python -m evaluation.backtest_600
+python -m prediction.generate_plan
+python -m bot.main
 ```
 
 ## 核心特性
@@ -38,21 +39,26 @@ python -m prediction.generate_plan           # 生成20期预测计划
 - 权重文件 >1 MB（真实训练产生）
 - 每新增 20 期触发训练检查，仅验证通过才升级正式模型
 - 20 期预测计划冻结后不可修改
-- 模型训练、预测和回测核心已在本轮补齐；Hugging Face 发布与 Telegram Bot 尚未接入，不能视为已部署
+- Telegram Bot 直接读取模型报告、冻结预测计划、开奖验证及同步数据，不另造预测结果
+
+## Telegram Bot
+
+详见 [bot/README.md](bot/README.md)。Bot 使用长轮询，需要持续运行的主机；GitHub Actions 不适合承载常驻进程。
+
+必需环境变量：`TG_TOKEN`（或 `TELEGRAM_BOT_TOKEN`）。可选管理员配置：`BOT_ADMIN_IDS`（逗号分隔的 Telegram 数字 ID）。不要把 Bot Token 提交到仓库。
 
 ## 当前模型状态
 
-见 `logs/` 与 `evaluation/reports/`。
+见 `logs/training_latest.json` 与 `evaluation/reports/backtest_600.json`。回测结果低于多数类基线时，必须如实显示，不能宣传为具有稳定预测优势。
 
 ## 数据同步
 
 GitHub Actions 每 5 分钟同步 https://pc28.help/api/kj.json?nbr=100（该接口文档限制 nbr 为 1–100），维护完整归档与最近 10000 期训练窗口。达到新增 20 期后才触发训练。
 
-
 ## 部署状态（如实记录）
 
 - GitHub：源码与开奖同步工作流。
 - 自主模型：从随机初始化训练；权重文件生成后由工作流提交，并校验大于 1,000,000 字节。
-- Hugging Face：尚未创建 Space 或完成模型仓库上传；需要在模型与回测工作流通过后再接入。
-- Telegram Bot：尚未实现。
+- Hugging Face：尚未创建 Space 或完成模型仓库上传。
+- Telegram Bot：核心命令、订阅存储、计划/开奖轮询推送代码已加入仓库；尚未配置 BotFather Token、管理员 ID，也未在常驻主机上启动，不能视为已上线。
 - 开奖接口：/api/kj.json 的 nbr 按接口文档限制为 1–100；同步器使用 100 条并进行期号、和值和组合校验。
