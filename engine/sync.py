@@ -71,7 +71,7 @@ def parse_draw(raw: dict) -> tuple:
     issue = int(issue_text)
 
     code_text = str(code_raw).strip().split("=", 1)[0]
-    match = re.fullmatch(r"\s*(\d)\s*\+\s*(\d)\s*\+\s*(\d)\s*", code_text)
+    match = re.fullmatch(r"\s*(\d)\s*[+,]\s*(\d)\s*[+,]\s*(\d)\s*", code_text)
     if not match:
         raise ValueError(f"invalid three-ball result for issue {issue}: {code_raw!r}")
     digits = [int(x) for x in match.groups()]
@@ -80,8 +80,17 @@ def parse_draw(raw: dict) -> tuple:
     parity = "双" if total % 2 == 0 else "单"
     combo = size + parity
 
-    date = str(first(raw, ALIASES["draw_date"]) or "")[:10]
-    clock = str(first(raw, ALIASES["draw_time"]) or "")[:8]
+    date_raw = str(first(raw, ALIASES["draw_date"]) or "")
+    clock_raw = str(first(raw, ALIASES["draw_time"]) or "")
+    # Some API responses put the full timestamp in "time" instead of
+    # splitting date and clock into separate fields.
+    if len(clock_raw) >= 16 and clock_raw[4:5] == "-" and clock_raw[10:11] in (" ", "T"):
+        stamp = clock_raw.replace("T", " ")
+        date = (date_raw or stamp[:10])[:10]
+        clock = stamp[11:19]
+    else:
+        date = date_raw[:10]
+        clock = clock_raw[:8]
     return (issue, date, clock, "+".join(map(str, digits)), total, size, parity, combo)
 
 
