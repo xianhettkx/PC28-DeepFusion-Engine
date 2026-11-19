@@ -38,7 +38,7 @@ python -m prediction.generate_plan           # 生成20期预测计划
 - 权重文件 >1 MB（真实训练产生）
 - 每新增 20 期触发训练检查，仅验证通过才升级正式模型
 - 20 期预测计划冻结后不可修改
-- 支持 Hugging Face 存储与 Telegram Bot
+- 模型训练、预测和回测核心已在本轮补齐；Hugging Face 发布与 Telegram Bot 尚未接入，不能视为已部署
 
 ## 当前模型状态
 
@@ -47,3 +47,12 @@ python -m prediction.generate_plan           # 生成20期预测计划
 ## 数据同步
 
 GitHub Actions 每 5 分钟同步 https://pc28.help/api/kj.json?nbr=100（该接口文档限制 nbr 为 1–100），维护完整归档与最近 10000 期训练窗口。达到新增 20 期后才触发训练。
+
+
+## 部署状态（如实记录）
+
+- GitHub：源码与开奖同步工作流。
+- 自主模型：从随机初始化训练；权重文件生成后由工作流提交，并校验大于 1,000,000 字节。
+- Hugging Face：尚未创建 Space 或完成模型仓库上传；需要在模型与回测工作流通过后再接入。
+- Telegram Bot：尚未实现。
+- 开奖接口：/api/kj.json 的 nbr 按接口文档限制为 1–100；同步器使用 100 条并进行期号、和值和组合校验。
