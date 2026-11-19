@@ -12,6 +12,8 @@ import html
 import json
 import logging
 import os
+import socket
+import ssl
 import subprocess
 import time
 from pathlib import Path
@@ -378,14 +380,35 @@ async def post_init(app: Application) -> None:
 
 
 
-def build_application(token: str) -> Application:
-    # Hugging Face's PC28 runtime has shown Telegram TLS connection timeouts.
-    # When no explicit proxy is configured, bind outbound sockets to IPv4;
-    # this avoids a broken IPv6 route without changing Telegram's API or token.
-    proxy_configured = any(
-        os.getenv(name)
-        for name in ("HTTPS_PROXY", "https_proxy", "ALL_PROXY", "all_proxy")
-    )
+def probe_telegram_ipv4() -> bool:
+    """Check DNS, TCP and TLS independently before selecting the HTTP transport."""
+    host = "api.telegram.org"
+    try:
+        addresses = socket.getaddrinfo(host, 443, family=socket.AF_INET, type=socket.SOCK_STREAM)
+    except OSError as exc:
+        LOG.warning("Telegram IPv4 DNS lookup failed: %s: %s", type(exc).__name__, exc)
+        return False
+
+    tried: set[str] = set()
+    for family, socktype, proto, _, sockaddr in addresses:
+        ip = sockaddr[0]
+        if ip in tried:
+            continue
+        tried.add(ip)
+        try:
+            raw = socket.create_connection((ip, 443), timeout=6)
+            with raw:
+                raw.settimeout(8)
+                with ssl.create_default_context().wrap_socket(raw, server_hostname=host):
+                    LOG.info("Telegram IPv4 TCP+TLS probe succeeded (%s).", ip)
+                    return True
+        except (OSError, ssl.SSLError) as exc:
+            LOG.warning("Telegram IPv4 probe failed (%s): %s: %s", ip, type(exc).__name__, exc)
+    return False
+
+
+def build_application(token: str, force_ipv4: bool = False) -> Application:
+    # Use separate HTTPX clients for Bot API calls and long polling.
     request_kwargs: dict[str, Any] = {
         "connection_pool_size": 8,
         "read_timeout": 30,
@@ -393,23 +416,27 @@ def build_application(token: str) -> Application:
         "connect_timeout": 30,
         "pool_timeout": 15,
     }
-    if not proxy_configured:
-        request_kwargs["httpx_kwargs"] = {
-            "trust_env": True,
-            "transport": httpx.AsyncHTTPTransport(local_address="0.0.0.0"),
-        }
-        LOG.info("Telegram HTTP transport: direct IPv4 (no proxy configured).")
-    else:
-        LOG.info("Telegram HTTP transport: environment proxy detected; using proxy-aware transport.")
 
-    bot_request = HTTPXRequest(**request_kwargs)
-    updates_request = HTTPXRequest(**request_kwargs)
+    def make_request() -> HTTPXRequest:
+        kwargs = dict(request_kwargs)
+        if force_ipv4:
+            # PTB 21.6 supports httpx_kwargs; local_address pins the socket to IPv4.
+            kwargs["httpx_kwargs"] = {
+                "trust_env": True,
+                "transport": httpx.AsyncHTTPTransport(local_address="0.0.0.0"),
+            }
+        return HTTPXRequest(**kwargs)
+
+    if force_ipv4:
+        LOG.info("Telegram HTTP transport: IPv4 selected after successful TLS probe.")
+    else:
+        LOG.info("Telegram HTTP transport: default HTTPX routing (IPv4 probe did not pass or proxy is configured).")
 
     app = (
         ApplicationBuilder()
         .token(token)
-        .request(bot_request)
-        .get_updates_request(updates_request)
+        .request(make_request())
+        .get_updates_request(make_request())
         .concurrent_updates(16)
         .post_init(post_init)
         .build()
@@ -429,7 +456,12 @@ def polling_error_callback(exc: Exception) -> None:
 
 
 async def telegram_main(token: str) -> None:
-    app = build_application(token)
+    proxy_configured = any(
+        os.getenv(name)
+        for name in ("HTTPS_PROXY", "https_proxy", "ALL_PROXY", "all_proxy")
+    )
+    force_ipv4 = False if proxy_configured else await asyncio.to_thread(probe_telegram_ipv4)
+    app = build_application(token, force_ipv4=force_ipv4)
     initialized = False
     started = False
     polling = False
