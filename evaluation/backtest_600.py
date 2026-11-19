@@ -35,7 +35,8 @@ def run_backtest():
             idx=int(np.argmax(p))
             rows.append({"issue":int(issues[j]),"prediction":CLASSES[idx],"probabilities":{CLASSES[k]:round(float(p[k]),6) for k in range(4)},"actual":CLASSES[int(targets[j])],"hit":bool(idx==int(targets[j]))})
         # Only after scoring this block do its actual outcomes enter training.
-        update_start=max(0,end-2048)\n        model,_=fit_model(model,seqs[update_start:end],feats[update_start:end],targets[update_start:end],epochs=1,lr=5e-5)
+        update_start=max(0,end-2048)
+        model,_=fit_model(model,seqs[update_start:end],feats[update_start:end],targets[update_start:end],epochs=1,lr=5e-5)
     probs=np.concatenate(all_probs,axis=0); y=np.asarray(all_true,dtype=np.int64); pred=probs.argmax(1)
     precision,recall,f1,_=precision_recall_fscore_support(y,pred,labels=[0,1,2,3],zero_division=0)
     cm=confusion_matrix(y,pred,labels=[0,1,2,3]).tolist()
