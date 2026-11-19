@@ -380,31 +380,47 @@ async def post_init(app: Application) -> None:
 
 
 
-def probe_telegram_ipv4() -> bool:
-    """Check DNS, TCP and TLS independently before selecting the HTTP transport."""
-    host = "api.telegram.org"
+def probe_tls_ipv4(host: str, label: str) -> bool:
+    """Test a host's IPv4 TCP+TLS path without sending credentials or API calls."""
     try:
         addresses = socket.getaddrinfo(host, 443, family=socket.AF_INET, type=socket.SOCK_STREAM)
     except OSError as exc:
-        LOG.warning("Telegram IPv4 DNS lookup failed: %s: %s", type(exc).__name__, exc)
+        LOG.warning("%s IPv4 DNS lookup failed: %s: %s", label, type(exc).__name__, exc)
         return False
 
     tried: set[str] = set()
-    for family, socktype, proto, _, sockaddr in addresses:
+    for _, _, _, _, sockaddr in addresses:
         ip = sockaddr[0]
         if ip in tried:
             continue
         tried.add(ip)
         try:
-            raw = socket.create_connection((ip, 443), timeout=6)
+            raw = socket.create_connection((ip, 443), timeout=5)
             with raw:
-                raw.settimeout(8)
+                raw.settimeout(6)
                 with ssl.create_default_context().wrap_socket(raw, server_hostname=host):
-                    LOG.info("Telegram IPv4 TCP+TLS probe succeeded (%s).", ip)
+                    LOG.info("%s IPv4 TCP+TLS probe succeeded (%s).", label, ip)
                     return True
         except (OSError, ssl.SSLError) as exc:
-            LOG.warning("Telegram IPv4 probe failed (%s): %s: %s", ip, type(exc).__name__, exc)
+            LOG.warning("%s IPv4 probe failed (%s): %s: %s", label, ip, type(exc).__name__, exc)
     return False
+
+
+def probe_telegram_ipv4() -> bool:
+    """Compare Telegram TLS reachability with a neutral HTTPS endpoint."""
+    proxy_names = [
+        name for name in ("HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy",
+                          "ALL_PROXY", "all_proxy")
+        if os.getenv(name)
+    ]
+    LOG.info("Outbound proxy environment variables present: %s",
+             ", ".join(proxy_names) if proxy_names else "none")
+    google_ok = probe_tls_ipv4("www.google.com", "Google")
+    telegram_ok = probe_tls_ipv4("api.telegram.org", "Telegram")
+    LOG.info("Outbound TLS comparison: Google=%s, Telegram=%s",
+             "OK" if google_ok else "FAILED",
+             "OK" if telegram_ok else "FAILED")
+    return telegram_ok
 
 
 def build_application(token: str, force_ipv4: bool = False) -> Application:
