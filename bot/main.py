@@ -12,6 +12,7 @@ import html
 import json
 import logging
 import os
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -320,7 +321,18 @@ async def broadcast_update(app: Application, text: str) -> None:
 
 
 async def poll_repository(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Notify subscribers when the checked-out repository gains a new plan/draw."""
+    """Refresh the checkout, then notify subscribers about new plans and draws."""
+    if os.getenv("BOT_AUTO_GIT_PULL", "true").strip().lower() in {"1", "true", "yes", "on"}:
+        try:
+            result = await asyncio.to_thread(
+                subprocess.run,
+                ["git", "pull", "--ff-only", "origin", "main"],
+                cwd=ROOT, capture_output=True, text=True, timeout=45, check=False,
+            )
+            if result.returncode != 0:
+                LOG.warning("Repository refresh failed: %s", (result.stderr or result.stdout)[-500:])
+        except (OSError, subprocess.SubprocessError):
+            LOG.exception("Repository refresh failed; continuing with local data")
     state = load_state()
     plan = latest_plan()
     issue = latest_issue()
