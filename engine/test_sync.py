@@ -15,5 +15,14 @@ class SyncTests(unittest.TestCase):
         with self.assertRaises(ValueError): sync.parse_draw({"issue":1,"code":"1+2"})
     def test_api_wrappers(self):
         self.assertEqual(sync.extract_rows({"data":{"list":[{"x":1}]}}), [{"x":1}])
+    def test_pc28_help_schema(self):
+        row = sync.parse_draw({
+            "nbr":"3508520",
+            "time":"2026-11-19 23:24:00",
+            "number":"9+9+2=20",
+            "num":"20",
+            "combination":"大双"
+        })
+        self.assertEqual(row, (3508520,"2026-11-19","23:24:00","9+9+2",20,"大","双","大双"))
 
 if __name__ == "__main__": unittest.main()
