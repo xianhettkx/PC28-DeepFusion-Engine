@@ -1,13 +1,6 @@
 name: Train DeepFusion
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "training/**"
-      - "models/**"
-      - "features/**"
-      - "evaluation/**"
 permissions:
   contents: write
 concurrency:
