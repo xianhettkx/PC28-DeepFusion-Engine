@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Idempotent PC28 history bootstrap + API synchronizer. Standard-library only."""
 from __future__ import annotations
-import csv, json, os, re, sqlite3, sys, time
+import csv, json, os, re, sqlite3, sys
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,11 +13,11 @@ API_URL = os.getenv("PC28_API_URL") or "https://pc28.help/api/kj.json?nbr=500"
 ROLLING_SIZE = int(os.getenv("PC28_ROLLING_SIZE", "10000"))
 FIELDS = ["draw_nbr","draw_date","draw_time","draw_number","draw_num","size_type","parity_type","combination_type"]
 ALIASES = {
- "draw_nbr": ("draw_nbr","expect","issue","period","qihao","drawno","draw_no","number_id"),
+ "draw_nbr": ("draw_nbr","nbr","expect","issue","period","qihao","drawno","draw_no","number_id"),
  "draw_date": ("draw_date","date","open_date"),
  "draw_time": ("draw_time","time","open_time"),
- "draw_number": ("draw_number","opencode","open_code","code","result","open_result"),
- "draw_num": ("draw_num","sum","total","和值"),
+ "draw_number": ("draw_number","opencode","open_code","code","result","open_result","number"),
+ "draw_num": ("draw_num","sum","total","和值","num"),
 }
 def first(obj, names):
     for name in names:
@@ -43,7 +42,9 @@ def parse_draw(raw):
     code = first(raw, ALIASES["draw_number"])
     if issue is None or code is None: raise ValueError(f"missing issue/code fields: {list(raw)[:20]}")
     issue = int(re.sub(r"\D", "", str(issue)))
-    digits = [int(x) for x in re.findall(r"\d+", str(code))]
+    # pc28.help returns number as "4+8+2=14"; only the three balls form the draw code.
+    code_text = str(code).split("=", 1)[0]
+    digits = [int(x) for x in re.findall(r"\d+", code_text)]
     if len(digits) != 3 or any(x < 0 or x > 9 for x in digits):
         raise ValueError(f"invalid three-digit draw code for issue {issue}: {code!r}")
     total = sum(digits)
@@ -52,11 +53,15 @@ def parse_draw(raw):
     combo = size + parity
     date = first(raw, ALIASES["draw_date"])
     clock = first(raw, ALIASES["draw_time"])
+    if clock and (not date or len(str(clock)) > 8):
+        stamp = str(clock).replace("T", " ")
+        if len(stamp) >= 10: date = date or stamp[:10]
+        if len(stamp) >= 16: clock = stamp[11:19]
     open_time = first(raw, ("opentime","openTime","timestamp","open_timestamp"))
     if open_time and (not date or not clock):
-        s = str(open_time).replace("T"," ")
-        if len(s) >= 10: date = date or s[:10]
-        if len(s) >= 16: clock = clock or s[11:19]
+        stamp = str(open_time).replace("T"," ")
+        if len(stamp) >= 10: date = date or stamp[:10]
+        if len(stamp) >= 16: clock = clock or stamp[11:19]
     date = str(date or "")[:10]
     clock = str(clock or "")[:8]
     return (issue, date, clock, "+".join(map(str,digits)), total, size, parity, combo)
