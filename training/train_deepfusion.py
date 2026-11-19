@@ -41,12 +41,18 @@ def fit_model(model, seqs, feats, labels, epochs=1, batch_size=128, lr=2e-4):
     return model, history
 
 def evaluate(model, seqs, feats, labels):
+    # Keep validation tensors on the same device as the model. This matters
+    # when training runs on a CUDA runner; CPU-only runs behave identically.
+    device = next(model.parameters()).device
     model.eval()
     with torch.no_grad():
-        logits=model(torch.from_numpy(seqs).float(),torch.from_numpy(feats).float())
-        loss=float(nn.functional.cross_entropy(logits,torch.from_numpy(labels).long()).item())
-        pred=logits.argmax(1).numpy()
-    return loss, float((pred==labels).mean())
+        seq = torch.from_numpy(seqs).float().to(device)
+        feat = torch.from_numpy(feats).float().to(device)
+        target = torch.from_numpy(labels).long().to(device)
+        logits = model(seq, feat)
+        loss = float(nn.functional.cross_entropy(logits, target).item())
+        pred = logits.argmax(1).detach().cpu().numpy()
+    return loss, float((pred == labels).mean())
 
 def main():
     parser=argparse.ArgumentParser()
