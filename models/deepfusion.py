@@ -29,7 +29,7 @@ class FeatureEncoder(nn.Module):
         return self.net(x)
 
 class DeepFusionNet(nn.Module):
-    def __init__(self, hidden=512):
+    def __init__(self, hidden=256):
         super().__init__()
         self.seq_enc = SequenceEncoder(hidden)
         self.feat_enc = FeatureEncoder(hidden=hidden)
