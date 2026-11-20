@@ -1,0 +1,133 @@
+{
+  "plan_id": "DF-20261119T224604857703Z",
+  "plan_sha256": "7eb1a740e86114476fa7546e272bc8f35ac0cf11ff09f3d82e22b557a85b3e5f",
+  "model_version": "deepfusion_v3508614",
+  "last_historical_issue": 3508645,
+  "latest_available_issue": 3508731,
+  "validated_periods": 20,
+  "hits": 7,
+  "hit_rate": 0.35,
+  "completed": true,
+  "results": [
+    {
+      "issue": 3508646,
+      "prediction": "小单",
+      "actual": "大单",
+      "hit": false
+    },
+    {
+      "issue": 3508647,
+      "prediction": "小单",
+      "actual": "小单",
+      "hit": true
+    },
+    {
+      "issue": 3508648,
+      "prediction": "小单",
+      "actual": "小单",
+      "hit": true
+    },
+    {
+      "issue": 3508649,
+      "prediction": "小单",
+      "actual": "大单",
+      "hit": false
+    },
+    {
+      "issue": 3508650,
+      "prediction": "小单",
+      "actual": "大双",
+      "hit": false
+    },
+    {
+      "issue": 3508651,
+      "prediction": "小单",
+      "actual": "大单",
+      "hit": false
+    },
+    {
+      "issue": 3508652,
+      "prediction": "小单",
+      "actual": "大单",
+      "hit": false
+    },
+    {
+      "issue": 3508653,
+      "prediction": "小单",
+      "actual": "小双",
+      "hit": false
+    },
+    {
+      "issue": 3508654,
+      "prediction": "小单",
+      "actual": "大双",
+      "hit": false
+    },
+    {
+      "issue": 3508655,
+      "prediction": "小单",
+      "actual": "小单",
+      "hit": true
+    },
+    {
+      "issue": 3508656,
+      "prediction": "小单",
+      "actual": "大双",
+      "hit": false
+    },
+    {
+      "issue": 3508657,
+      "prediction": "小单",
+      "actual": "小双",
+      "hit": false
+    },
+    {
+      "issue": 3508658,
+      "prediction": "小单",
+      "actual": "小单",
+      "hit": true
+    },
+    {
+      "issue": 3508659,
+      "prediction": "大双",
+      "actual": "小双",
+      "hit": false
+    },
+    {
+      "issue": 3508660,
+      "prediction": "大双",
+      "actual": "大双",
+      "hit": true
+    },
+    {
+      "issue": 3508661,
+      "prediction": "大双",
+      "actual": "大双",
+      "hit": true
+    },
+    {
+      "issue": 3508662,
+      "prediction": "大双",
+      "actual": "小双",
+      "hit": false
+    },
+    {
+      "issue": 3508663,
+      "prediction": "大双",
+      "actual": "大双",
+      "hit": true
+    },
+    {
+      "issue": 3508664,
+      "prediction": "大双",
+      "actual": "小单",
+      "hit": false
+    },
+    {
+      "issue": 3508665,
+      "prediction": "大双",
+      "actual": "小单",
+      "hit": false
+    }
+  ]
+}

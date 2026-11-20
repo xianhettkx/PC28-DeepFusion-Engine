@@ -3,7 +3,7 @@
   "plan_sha256": "52a56b329e6e027a6e7bbe55904116338dbf0765011c849604aa40935db3130f",
   "model_version": "deepfusion_v3508614",
   "last_historical_issue": 3508614,
-  "latest_available_issue": 3508645,
+  "latest_available_issue": 3508731,
   "validated_periods": 20,
   "hits": 2,
   "hit_rate": 0.1,
